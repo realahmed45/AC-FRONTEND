@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Shell from '@/components/Shell';
 import Modal from '@/components/Modal';
+import ShopPicker from '@/components/ShopPicker';
 import { useToast } from '@/components/Toast';
 import { del, get, post, put } from '@/lib/api';
 
@@ -235,12 +236,20 @@ function StreetForm({ initial, onClose, onSaved }) {
   );
 }
 
+/** Short label for a shop id, falling back gracefully if it isn't loaded yet. */
+function label(shops, id) {
+  const s = shops.find((x) => String(x._id) === String(id));
+  if (!s) return 'Shop';
+  return s.code ? `${s.code} — ${s.name}` : s.name;
+}
+
 /** Sections live inside the street they belong to, so they're managed here. */
 function SectionManager({ street, streets, onClose, onChanged, notify }) {
   const [detail, setDetail] = useState(null);
   const [form, setForm] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -390,38 +399,21 @@ function SectionManager({ street, streets, onClose, onChanged, notify }) {
                   placeholder="e.g. North stretch"
                 />
               </label>
-              <div className="form-grid">
-                <label className="field">
-                  <span>Between shop *</span>
-                  <select
-                    value={form.fromShop}
-                    onChange={(e) => setForm({ ...form, fromShop: e.target.value })}
-                  >
-                    <option value="">Select…</option>
-                    {shops.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.code ? `${s.code} — ` : ''}
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span>And shop *</span>
-                  <select
-                    value={form.toShop}
-                    onChange={(e) => setForm({ ...form, toShop: e.target.value })}
-                  >
-                    <option value="">Select…</option>
-                    {shops.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.code ? `${s.code} — ` : ''}
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <label className="field">
+                <span>Section runs between *</span>
+                <div className="row">
+                  <button type="button" className="btn sm" onClick={() => setPicking(true)}>
+                    🗺 Pick on the map
+                  </button>
+                  {form.fromShop && form.toShop ? (
+                    <span className="badge">
+                      {label(shops, form.fromShop)} → {label(shops, form.toShop)}
+                    </span>
+                  ) : (
+                    <span className="muted small">Click two shops on this street.</span>
+                  )}
+                </div>
+              </label>
 
               <label className="field">
                 <span>Connection to another street</span>
@@ -502,6 +494,20 @@ function SectionManager({ street, streets, onClose, onChanged, notify }) {
                 </button>
               </div>
             </fieldset>
+          )}
+
+          {picking && (
+            <ShopPicker
+              title={`Pick the two ends of the section on ${street.name}`}
+              street={street._id}
+              max={2}
+              initial={[form.fromShop, form.toShop].filter(Boolean)}
+              onCancel={() => setPicking(false)}
+              onConfirm={(ids) => {
+                setForm({ ...form, fromShop: ids[0] || '', toShop: ids[1] || '' });
+                setPicking(false);
+              }}
+            />
           )}
         </>
       )}

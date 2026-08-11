@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Shell from '@/components/Shell';
 import Modal from '@/components/Modal';
+import ShopPicker from '@/components/ShopPicker';
 import { useToast } from '@/components/Toast';
 import { del, get, post, put } from '@/lib/api';
 
@@ -220,30 +221,12 @@ function ShopForm({ initial, streets, onClose, onSaved }) {
   const [form, setForm] = useState(initial);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  // Shops already on each street, so "add between A and B" can list them.
-  const [onStreet, setOnStreet] = useState({});
+  // Names for the shops picked off the map, keyed by id, so the form can
+  // show "between A and B" without refetching the whole map.
+  const [pickedNames, setPickedNames] = useState({});
+  const [pickingFor, setPickingFor] = useState(null); // index of the street row
   const isNew = !initial._id;
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const fetchStreetShops = useCallback(
-    async (streetId) => {
-      if (!streetId || onStreet[streetId]) return;
-      try {
-        const data = await get(`/streets/${streetId}`);
-        setOnStreet((m) => ({
-          ...m,
-          [streetId]: data.shops.filter((s) => s._id !== initial._id),
-        }));
-      } catch {
-        /* dropdown just stays empty */
-      }
-    },
-    [onStreet, initial._id]
-  );
-
-  useEffect(() => {
-    form.streets.forEach((l) => l.street && fetchStreetShops(l.street));
-  }, [form.streets, fetchStreetShops]);
 
   function addLink() {
     set('streets', [...form.streets, { street: '', proximity: 'on', between: [], order: '' }]);
@@ -373,7 +356,6 @@ function ShopForm({ initial, streets, onClose, onSaved }) {
           )}
 
           {form.streets.map((link, i) => {
-            const candidates = onStreet[link.street] || [];
             const pct = PROX_PCT[link.proximity];
             return (
               <div
@@ -417,38 +399,40 @@ function ShopForm({ initial, streets, onClose, onSaved }) {
                   </label>
                 </div>
 
-                {candidates.length >= 2 && (
-                  <label className="field">
-                    <span>Place between (pick two, optional)</span>
-                    <div className="checklist" style={{ maxHeight: 130 }}>
-                      {candidates.map((c) => {
-                        const picked = (link.between || []).includes(c._id);
-                        return (
-                          <label key={c._id}>
-                            <input
-                              type="checkbox"
-                              checked={picked}
-                              onChange={() => {
-                                const cur = link.between || [];
-                                const next = picked
-                                  ? cur.filter((x) => x !== c._id)
-                                  : [...cur, c._id].slice(-2);
-                                updateLink(i, { between: next, order: '' });
-                              }}
-                            />
-                            <span>
-                              {c.code ? `${c.code} — ` : ''}
-                              {c.name}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <span className="small muted">
-                      Leave empty to append at the end of the line.
-                    </span>
-                  </label>
-                )}
+                <label className="field">
+                  <span>Place between</span>
+                  <div className="row">
+                    <button
+                      type="button"
+                      className="btn sm"
+                      onClick={() => setPickingFor(i)}
+                      disabled={!link.street}
+                      title={!link.street ? 'Choose a street first' : ''}
+                    >
+                      🗺 Pick on the map
+                    </button>
+                    {(link.between || []).length > 0 ? (
+                      <>
+                        {link.between.map((id, n) => (
+                          <span key={id} className="badge">
+                            {n + 1}. {pickedNames[id] || 'Selected shop'}
+                          </span>
+                        ))}
+                        <button
+                          type="button"
+                          className="btn sm"
+                          onClick={() => updateLink(i, { between: [], order: '' })}
+                        >
+                          Clear
+                        </button>
+                      </>
+                    ) : (
+                      <span className="muted small">
+                        Not set — the shop is added at the end of the line.
+                      </span>
+                    )}
+                  </div>
+                </label>
 
                 <div className="row">
                   <span className="badge">Weight on this street: {(points * pct) / 100}</span>
@@ -477,6 +461,22 @@ function ShopForm({ initial, streets, onClose, onSaved }) {
         </label>
         <button type="submit" hidden />
       </form>
+
+      {pickingFor !== null && (
+        <ShopPicker
+          title="Pick the two shops to sit between"
+          street={form.streets[pickingFor]?.street}
+          max={2}
+          initial={form.streets[pickingFor]?.between || []}
+          exclude={initial._id ? [initial._id] : []}
+          onCancel={() => setPickingFor(null)}
+          onConfirm={(ids, names) => {
+            updateLink(pickingFor, { between: ids, order: '' });
+            if (names) setPickedNames((m) => ({ ...m, ...names }));
+            setPickingFor(null);
+          }}
+        />
+      )}
     </Modal>
   );
 }
