@@ -105,7 +105,7 @@ export default function MapCanvas({
             return (
               <g
                 key={`${line._id}-${st._id}`}
-                onClick={() => clickable && onSelect?.(st)}
+                onClick={(e) => clickable && onSelect?.(st, line, e)}
                 style={{ cursor: clickable ? 'pointer' : 'default', opacity: dimmed ? 0.3 : 1 }}
               >
                 {isPicked && (

@@ -774,3 +774,62 @@ td.actions {
   background: var(--success);
   border-color: var(--success);
 }
+
+/* ---------- Shop context menu ---------- */
+.shop-menu {
+  position: fixed;
+  z-index: 60;
+  width: 262px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.22);
+  padding: 6px;
+  overflow: hidden;
+}
+
+.shop-menu-head {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.shop-menu-sep {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  padding: 9px 10px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.shop-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.shop-menu-item:hover {
+  background: #eff6ff;
+  color: var(--primary-dark);
+}
+
+.shop-menu-item small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 1px;
+}
+
+.shop-menu-item:hover small {
+  color: var(--primary);
+}

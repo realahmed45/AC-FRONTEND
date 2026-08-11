@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Shell from '@/components/Shell';
 import Modal from '@/components/Modal';
 import ShopPicker from '@/components/ShopPicker';
@@ -26,6 +27,29 @@ const PROX_LABEL = { on: 'On the street', close: 'Close ~5m', near: 'Nearby ~15m
 const PROX_PCT = { on: 100, close: 70, near: 20 };
 
 export default function ShopsPage() {
+  return (
+    <Suspense fallback={<div className="loading">Loading…</div>}>
+      <ShopsInner />
+    </Suspense>
+  );
+}
+
+/** Turns a raw shop record into the shape the edit form expects. */
+function toFormShape(s) {
+  return {
+    ...EMPTY,
+    ...s,
+    streets: (s.streets || []).map((l) => ({
+      street: l.street?._id || l.street,
+      order: l.order,
+      proximity: l.proximity,
+      between: [],
+    })),
+  };
+}
+
+function ShopsInner() {
+  const params = useSearchParams();
   const [shops, setShops] = useState([]);
   const [streets, setStreets] = useState([]);
   const [q, setQ] = useState('');
@@ -54,6 +78,17 @@ export default function ShopsPage() {
     const t = setTimeout(load, q ? 300 : 0);
     return () => clearTimeout(t);
   }, [load, q]);
+
+  // Arriving from the map's "Edit shop" action opens that shop straight away.
+  const editId = params.get('edit');
+  useEffect(() => {
+    if (!editId || editing) return;
+    get(`/shops/${editId}`)
+      .then((s) => setEditing(toFormShape(s)))
+      .catch((e) => notify(e.message, 'error'));
+    // Only react to the id in the URL, not to every edit-state change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId]);
 
   async function remove(s) {
     if (!confirm(`Delete "${s.name}"?`)) return;
@@ -173,17 +208,7 @@ export default function ShopsPage() {
                       <td className="actions">
                         <button
                           className="btn sm"
-                          onClick={() =>
-                            setEditing({
-                              ...s,
-                              streets: s.streets.map((l) => ({
-                                street: l.street?._id || l.street,
-                                order: l.order,
-                                proximity: l.proximity,
-                                between: [],
-                              })),
-                            })
-                          }
+                          onClick={() => setEditing(toFormShape(s))}
                         >
                           Edit
                         </button>{' '}
