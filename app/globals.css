@@ -733,3 +733,44 @@ td.actions {
   text-align: center;
   color: var(--muted);
 }
+
+/* ---------- Map ---------- */
+.map-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: 8px;
+}
+
+.map-legend {
+  margin-top: 12px;
+  gap: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.legend-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--muted);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legend-dot.big {
+  width: 17px;
+  height: 17px;
+  border-width: 4px;
+}
+
+.legend-dot.dashed {
+  border-style: dashed;
+}
+
+.legend-dot.mine {
+  background: var(--success);
+  border-color: var(--success);
+}
