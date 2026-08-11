@@ -43,7 +43,7 @@ export default function MapCanvas({
         {layout.lines.map((line) => (
           <path
             key={`line-${line._id}`}
-            d={linePath(line.stations)}
+            d={linePath(line.stations, line)}
             fill="none"
             stroke={line.color}
             strokeWidth="9"
