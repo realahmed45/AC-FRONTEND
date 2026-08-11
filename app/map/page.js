@@ -74,6 +74,9 @@ export default function MapPage() {
           <span className="row" style={{ gap: 6 }}>
             <span className="legend-dot mine" /> My own shop
           </span>
+          <span className="row" style={{ gap: 6 }}>
+            <strong style={{ color: '#7c3aed' }}>2</strong> Streets the shop is linked to
+          </span>
         </div>
       </div>
 

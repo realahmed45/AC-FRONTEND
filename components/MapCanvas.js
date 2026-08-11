@@ -161,6 +161,17 @@ export default function MapCanvas({
                 >
                   {st.code ? st.name : st.banner === 'none' ? 'no banner' : st.banner}
                 </text>
+                {/* How many streets this shop is linked to. */}
+                <text
+                  x={st.x}
+                  y={st.y + (st.interchange ? R + 36 : R + 32)}
+                  textAnchor="middle"
+                  fontSize="13"
+                  fontWeight="700"
+                  fill="#7c3aed"
+                >
+                  {st.streetCount}
+                </text>
               </g>
             );
           });
