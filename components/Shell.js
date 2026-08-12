@@ -12,10 +12,6 @@ const NAV = [
   { href: '/employees', label: 'Employees', icon: '👤' },
   { href: '/areas', label: 'Areas', icon: '📍' },
   { href: '/services', label: 'Services & Prices', icon: '💰' },
-  { href: '/map', label: 'Map', icon: '🗺' },
-  { href: '/streets', label: 'Streets', icon: '🛣' },
-  { href: '/shops', label: 'Shops', icon: '🏪' },
-  { href: '/commission', label: 'Commission', icon: '🧮' },
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ];
 
